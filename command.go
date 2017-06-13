@@ -64,9 +64,7 @@ func ProcessDate(dateCommand string) (from time.Time, to time.Time, err error) {
 		return beginningOfDay(time.Now()), beginningOfDay(time.Now()).AddDate(0, 0, 1), nil
 
 	} else if dateFormatYesterday.MatchString(dateCommand) {
-
-		return beginningOfDay(time.Now()).AddDate(0, 0, -1), time.Now().Truncate(24 * time.Hour), nil
-
+		return beginningOfDay(time.Now()).AddDate(0, 0, -1), beginningOfDay(time.Now()), nil
 	} else if dateFormatThis.MatchString(dateCommand) {
 		thisCommandSplit := strings.Split(dateCommand, "this ")
 		if len(thisCommandSplit) < 2 {
