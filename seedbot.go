@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/nlopes/slack"
 	seed "github.com/seedco/seed-go"
@@ -63,22 +64,37 @@ func (s *Seedbot) Run() {
 }
 
 func (s *Seedbot) handleMessage(m *slack.MessageEvent) error {
+	var err error
 	if !strings.HasPrefix(m.Text, fmt.Sprintf("<@%s>", s.username)) {
 		return nil
 	}
 
 	command := strings.TrimSpace(strings.TrimLeft(m.Text, fmt.Sprintf("<@%s>", s.username)))
-	switch command {
+	commandSplit := strings.Split(command, " ")
+	switch commandSplit[0] {
 	case "transactions":
 		tReq := seed.TransactionsRequest{
 			Client: s.seedClient,
 		}
+
+		if len(commandSplit) > 1 {
+			var from, to time.Time
+			if from, to, err = ProcessDate(strings.Join(commandSplit[1:], " ")); err != nil {
+				return fmt.Errorf("error with command %v", err)
+			}
+			tReq.From = from
+			tReq.To = to
+		}
+
 		iterator := tReq.Iterator()
-		iterator.SetBatchSize(10)
 		txs, err := iterator.Next()
 		if err != nil {
 			return fmt.Errorf("error when getting transactions: %v", err)
 		}
+		if len(txs) == 0 {
+			return nil
+		}
+
 		tString := constructTransactionMessage(txs)
 		s.rtm.SendMessage(s.rtm.NewOutgoingMessage(tString, m.Channel))
 	case "balance":
@@ -110,7 +126,7 @@ func constructTransactionMessage(txs []seed.Transaction) string {
 	length := maxLength + 8
 
 	for _, tx := range txs {
-		s.WriteString(fmt.Sprintf(fmt.Sprintf("%%s%%%ds", length-len(tx.Description)), tx.Description, CentsToDollarStringWithCommas(tx.Amount)))
+		s.WriteString(fmt.Sprintf(fmt.Sprintf("%%s    %%s%%%ds", length-len(tx.Description)), tx.Date.Format("01/02/2006"), tx.Description, CentsToDollarStringWithCommas(tx.Amount)))
 		s.WriteString("\n")
 	}
 	message := strings.TrimRight(s.String(), "\n")

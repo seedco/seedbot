@@ -61,14 +61,14 @@ func ProcessDate(dateCommand string) (from time.Time, to time.Time, err error) {
 		return t, t.AddDate(0, 1, 0), nil
 	} else if dateFormatToday.MatchString(dateCommand) {
 
-		return time.Now().Truncate(24 * time.Hour), time.Now().Truncate(24*time.Hour).AddDate(0, 0, 1), nil
+		return beginningOfDay(time.Now()), beginningOfDay(time.Now()).AddDate(0, 0, 1), nil
 
 	} else if dateFormatYesterday.MatchString(dateCommand) {
 
-		return time.Now().Truncate(24*time.Hour).AddDate(0, 0, -1), time.Now().Truncate(24 * time.Hour), nil
+		return beginningOfDay(time.Now()).AddDate(0, 0, -1), time.Now().Truncate(24 * time.Hour), nil
 
 	} else if dateFormatThis.MatchString(dateCommand) {
-		thisCommandSplit := strings.Split(dateCommand, "this")
+		thisCommandSplit := strings.Split(dateCommand, "this ")
 		if len(thisCommandSplit) < 2 {
 			err = errors.New("invalid command")
 			return
@@ -76,14 +76,14 @@ func ProcessDate(dateCommand string) (from time.Time, to time.Time, err error) {
 		switch strings.ToLower(thisCommandSplit[1]) {
 		case "week":
 			weekday := time.Now().Weekday()
-			return time.Now().Truncate(24*time.Hour).AddDate(0, 0, int(-weekday+1)), time.Now().Truncate(24*time.Hour).AddDate(0, 0, int(-weekday+7)), nil
+			return beginningOfDay(time.Now()).AddDate(0, 0, int(-weekday+1)), beginningOfDay(time.Now()).AddDate(0, 0, int(-weekday+7)), nil
 		case "month":
 			return time.Date(time.Now().Year(), time.Now().Month(), 0, 0, 0, 0, 0, time.UTC), time.Date(time.Now().Year(), time.Now().Month()+1, 0, 0, 0, 0, 0, time.UTC), nil
 		case "year":
 			return time.Date(time.Now().Year(), 0, 0, 0, 0, 0, 0, time.UTC), time.Time{}.AddDate(time.Now().Year()+1, 0, 0), nil
 		}
 	} else if dateFormatLast.MatchString(dateCommand) {
-		agoCommandSplit := strings.Split(dateCommand, "last")
+		agoCommandSplit := strings.Split(dateCommand, "last ")
 		if len(agoCommandSplit) < 2 {
 			err = errors.New("invalid command")
 			return
@@ -91,7 +91,7 @@ func ProcessDate(dateCommand string) (from time.Time, to time.Time, err error) {
 		switch strings.ToLower(agoCommandSplit[1]) {
 		case "week":
 			weekday := time.Now().Weekday()
-			return time.Now().Truncate(24*time.Hour).AddDate(0, 0, int(-weekday+1-7)), time.Now().Truncate(24*time.Hour).AddDate(0, 0, int(-weekday+1)), nil
+			return beginningOfDay(time.Now()).AddDate(0, 0, int(-weekday+1-7)), beginningOfDay(time.Now()).AddDate(0, 0, int(-weekday+1)), nil
 		case "month":
 			return time.Date(time.Now().Year(), time.Now().Month(), 0, 0, 0, 0, 0, time.UTC), time.Date(time.Now().Year(), time.Now().Month()+1, 0, 0, 0, 0, 0, time.UTC), nil
 		case "year":
@@ -99,5 +99,10 @@ func ProcessDate(dateCommand string) (from time.Time, to time.Time, err error) {
 		}
 
 	}
-	return time.Time{}, time.Time{}, errors.New("")
+	return time.Time{}, time.Time{}, errors.New("Command not supported")
+}
+
+func beginningOfDay(t time.Time) time.Time {
+	year, month, day := t.Date()
+	return time.Date(year, month, day, 0, 0, 0, 0, t.Location())
 }
