@@ -81,19 +81,19 @@ func ProcessDate(dateCommand string) (from time.Time, to time.Time, err error) {
 			return time.Date(time.Now().Year(), 0, 0, 0, 0, 0, 0, time.UTC), time.Time{}.AddDate(time.Now().Year()+1, 0, 0), nil
 		}
 	} else if dateFormatLast.MatchString(dateCommand) {
-		agoCommandSplit := strings.Split(dateCommand, "last ")
-		if len(agoCommandSplit) < 2 {
+		lastCommandSplit := strings.Split(dateCommand, "last ")
+		if len(lastCommandSplit) < 2 {
 			err = errors.New("invalid command")
 			return
 		}
-		switch strings.ToLower(agoCommandSplit[1]) {
+		switch strings.ToLower(lastCommandSplit[1]) {
 		case "week":
 			weekday := time.Now().Weekday()
 			return beginningOfDay(time.Now()).AddDate(0, 0, int(-weekday+1-7)), beginningOfDay(time.Now()).AddDate(0, 0, int(-weekday+1)), nil
 		case "month":
-			return time.Date(time.Now().Year(), time.Now().Month(), 0, 0, 0, 0, 0, time.UTC), time.Date(time.Now().Year(), time.Now().Month()+1, 0, 0, 0, 0, 0, time.UTC), nil
+			return time.Date(time.Now().Year(), time.Now().Month(), 0, 0, 0, 0, 0, time.UTC).AddDate(0, -1, 0), time.Date(time.Now().Year(), time.Now().Month(), 0, 0, 0, 0, 0, time.UTC), nil
 		case "year":
-			return time.Date(time.Now().Year(), 0, 0, 0, 0, 0, 0, time.UTC), time.Date(time.Now().Year()+1, 0, 0, 0, 0, 0, 0, time.UTC), nil
+			return time.Date(time.Now().Year()-1, 0, 0, 0, 0, 0, 0, time.UTC), time.Date(time.Now().Year(), 0, 0, 0, 0, 0, 0, time.UTC), nil
 		}
 
 	}
