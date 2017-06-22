@@ -1,5 +1,9 @@
 # Seedbot
-Slackbot to interact with Seed.
+<p align="center">
+<img src="https://s3-us-west-2.amazonaws.com/seed-assets/seedbot_small.png">
+</p>
+
+A Slackbot to interact with Seed.
 
 ## Libraries used
 ### Seed Go Client
